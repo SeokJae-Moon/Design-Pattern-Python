@@ -1,0 +1,45 @@
+* 옵저버 Obserer Pattern
+ 1) 정의 
+  : 특정 객체의 데이터의 변경이 발생하였을 때, 상대 클래스 및 객체에 의존하지 않으면서 데이터 변경을 통보하고자 할 때
+  : 옵서버 패턴은 통보 대상 객체의 관리를 Subject 클래스와 Observer 인터페이스로 일반화한다. 
+    그러면 데이터 변경을 통보하는 클래스(ConcreteSubject)는 통보 대상 클래스/객체ConcreteObserver)에 대한 의존성을 제거할 수 있다. 
+    결과적으로 옵서버 패턴은 통보 대상 클래스나 대상 객체의 변경에도 ConcreteSubject 클래스를 수정 없이 그대로 사용할 수 있도록 한다.
+  
+  - Subject: 관찰 대상이 되는 객체. 자신을 관찰하는 옵저버들을 append한 리스트로 옵저버를 관리(attach, detach, notify)함.
+  - Observer: Subject를 관찰하는 객체. Subject가 notify를 호출하면 Observer의 update가 호출됨.
+  - 일대다 관계
+   
+ 2) 사용예시: 이벤트 핸들러 == 리스너 객체
+
+ 3) 코드
+ class Subject:    
+    def __init__(self):
+        self.__observers = []
+    
+    def register(self, observer):
+        self.__observers.append(observer)
+    
+    def notifyAll(self, *args, **kwargs):
+        for observer in self.__observers:
+            observer.notify(self, *args, **kwargs)
+
+
+class Observer1:    
+    def __init__(self, subject):
+        subject.register(self)
+    
+    def notify(self, subject, *args):
+        print(type(self).__name__,':: Got', args, 'From', subject)
+
+class Observer2:    
+    def __init__(self, subject):
+        subject.register(self)
+    
+    def notify(self, subject, *args):
+        print(type(self).__name__, ':: Got', args, 'From', subject)
+
+
+subject = Subject()
+observer1 = Observer1(subject)
+observer2 = Observer2(subject)
+subject.notifyAll('notification')
