@@ -4,10 +4,25 @@
   : 싱글톤 패턴이란, 인스턴스가 프로그램 내에서 오직 하나만 생성되는 것을 보장하고, 프로그램 어디에서든 이 인스턴스에 접근할 수 있도록 하는 패턴.
     즉, 인스턴스가 사용될 때 똑같은 인스턴스를 여러 개 만드는 것이 아니라, 기존에 생성했던 동일한 인스턴스를 사용하게끔 하는 것.
 
- 2) 이점:
-  : 
+ 2) 이점  
+  : 메모리 측면 : 최초 한번의 new 연산자를 통해 고정된 메모리 영역을 사용하기 때문에 추후 해당 객체에 접근할 때 메모리 낭비를 방지할 수 있다. 
+ 3) 문제점
+  : 동시성 문제 : 멀티 스레딩 환경에서 발생할 수 있다. -> 동기화로 해결할 수 있음.
+  : SOLID 원칙 위반 가능성: 의존 관계상 클라이언트가 구체 클래스에 의존하게 됨 -> DIP 또는 OCP 원칙을 위반할 수 있음.
+  : 내부 코드를 변경하기 어려움 -> 유연성이 떨어짐
+
+ 4) 용도(목적) 
+  : 클래스에 대한 단일 객체 생성
+  : 전역 객체 제공
+  : 공유된 리소스에 대한 동시 접근 제어  
+
+ 5) 구현
+  : __new__메서드를 재정의한 후 해당 메서드 내에서 이미 객체가 생성됐다면 객체를 생성해주지 않도록 처리한다.
+  : 객체의 생성 여부는 모든 클래스 객체의 속성 변수로 _instance 를 추가한 후 해당 변수로 관리하도록 한다.
  
- 3) 코드0: 
+ 6) 사용 예시 : 로깅, 데이터베이스 관련 작업, 프린터 스풀러 등
+ 
+ 4) 코드0: 
  class Singleton(object):
      
     def __new__(cls):
@@ -130,7 +145,7 @@ print("Object created", s) ## Object got created
 s1 = Singleton() ## Exception thrown
 
 
- 3) 코드1: 
+ 4) 코드1: 
  Method 1: Method type
  여기 예제중에서 call 속도도 가장 빠르고 여러가지 상속이나 기타 상황에서 가장 문제가 없는 방식이다. 
  사용 방식은 C/C++에서 자주사용하는 방식과 비슷하게 직접 instance 메소드를 실행하는 방법이다. 상속 순서역시 가장 뒤에 와도 상관없기 때문에 가장 좋은 방법인것 같다.
@@ -152,7 +167,7 @@ class MyClass(BaseClass, SingletonInstane):
 
 c = MyClass.instance()
 
-3) 코드2
+4) 코드2
  Method 2: A decorator
  빠르지만 클래스 자체를 호출할경우 함수가 리턴되기 때문에 클래스의 StaticMethod에 접근할수가 없다.
  def singleton(class_):
@@ -167,7 +182,7 @@ c = MyClass.instance()
 class MyClass(BaseClass):
   pass
     
-3) 코드3
+5) 코드3
  Method 3: A base class
  데코레이터 타입의 싱글톤보다 아주 살짝 느리지만 일반적인 클래스처럼 쓸 수가 있기 때문에 가장 범용적이다.
  class Singleton(object):
@@ -180,7 +195,7 @@ class MyClass(BaseClass):
 class MyClass(Singleton, BaseClass):
   pass
  
-3) 코드4
+6) 코드4
  Method 4: A metaclass
  class Singleton(type):
     _instances = {}
@@ -197,7 +212,7 @@ class MyClass(BaseClass):
 class MyClass(BaseClass, metaclass=Singleton):
     pass
     
-3) 코드5
+7) 코드5
 Method 5: decorator returning a class with the same name
 def singleton(class_):
   class class_w(class_):
