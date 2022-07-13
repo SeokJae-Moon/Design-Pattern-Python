@@ -1,0 +1,223 @@
+* 싱글턴 패턴 Singleton Pattern
+ 1) 정의
+  : 클라이언트가 여러번 객체 생성을 하더라도 클래스가 오직 하나의 객체로만 존재하도록 하는 패턴.
+  : 싱글톤 패턴이란, 인스턴스가 프로그램 내에서 오직 하나만 생성되는 것을 보장하고, 프로그램 어디에서든 이 인스턴스에 접근할 수 있도록 하는 패턴.
+    즉, 인스턴스가 사용될 때 똑같은 인스턴스를 여러 개 만드는 것이 아니라, 기존에 생성했던 동일한 인스턴스를 사용하게끔 하는 것.
+
+ 2) 이점:
+  : 
+ 
+ 3) 코드0: 
+ class Singleton(object):
+     
+    def __new__(cls):
+       if not hasattr(cls, 'instance'):
+         cls.instance = super(Singleton, cls).__new__(cls)
+       return cls.instance
+
+s = Singleton()
+print("Object created", s)
+
+s1 = Singleton()
+print("Object created", s1)
+----------------------------------------------------------------------
+class Singleton:
+    
+    __instance = None
+    
+    def __init__(self):
+        if not Singleton.__instance:
+            print(" __init__ method called..")
+        else:
+            print("Instance already created:", self.getInstance())
+    
+    @classmethod
+    def getInstance(cls):
+        if not cls.__instance:
+            cls.__instance = Singleton()
+        return cls.__instance
+
+s = Singleton() ## class initialized, but object not created
+print("Object created", Singleton.getInstance()) ## Gets created here
+s1 = Singleton() ## instance already created
+----------------------------------------------------------------------
+ class MetaSingleton(type):
+    
+    _instances = {}
+    
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+class Logger(metaclass=MetaSingleton):
+    pass
+
+logger1 = Logger()
+logger2 = Logger()
+print(logger1, logger2)
+----------------------------------------------------------------------
+import sqlite3
+
+class MetaSingleton(type):
+    
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Database(metaclass=MetaSingleton):
+    connection = None
+    def connect(self):
+        if self.connection is None:
+            self.connection = sqlite3.connect("db.sqlite3")
+            self.cursorobj = self.connection.cursor()
+        return self.cursorobj
+
+db1 = Database().connect()
+db2 = Database().connect()
+
+print ("Database Objects DB1", db1)
+print ("Database Objects DB2", db2)
+-------------------------------------------------------------------
+class HealthCheck:
+    
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if not HealthCheck._instance:
+            HealthCheck._instance = super(HealthCheck, cls).__new__(cls, *args, **kwargs)
+        return HealthCheck._instance
+    
+    def __init__(self):
+        self._servers = []
+    
+    def addServer(self):
+        self._servers.append("Server 1")
+        self._servers.append("Server 2")
+        self._servers.append("Server 3")
+        self._servers.append("Server 4")
+    
+    def changeServer(self):
+        self._servers.pop()
+        self._servers.append("Server 5")
+
+hc1 = HealthCheck()
+hc2 = HealthCheck()
+
+hc1.addServer()
+print("Schedule health check for servers (1)..")
+for i in range(4):
+    print("Checking ", hc1._servers[i])
+
+
+hc2.changeServer()
+print("Schedule health check for servers (2)..")
+for i in range(4):
+    print("Checking ", hc2._servers[i])
+------------------------------------------------------------------
+class Singleton(object):
+    cls_attr = None
+    def __new__(cls, *args, **kwargs):
+        if Singleton.cls_attr:
+            raise Exception
+        Singleton.cls_attr = 1
+        return super(Singleton, cls).__new__(cls, *args, **kwargs)
+
+s = Singleton()
+print("Object created", s) ## Object got created
+s1 = Singleton() ## Exception thrown
+
+
+ 3) 코드1: 
+ Method 1: Method type
+ 여기 예제중에서 call 속도도 가장 빠르고 여러가지 상속이나 기타 상황에서 가장 문제가 없는 방식이다. 
+ 사용 방식은 C/C++에서 자주사용하는 방식과 비슷하게 직접 instance 메소드를 실행하는 방법이다. 상속 순서역시 가장 뒤에 와도 상관없기 때문에 가장 좋은 방법인것 같다.
+ class SingletonInstane:
+  __instance = None
+
+  @classmethod
+  def __getInstance(cls):
+    return cls.__instance
+
+  @classmethod
+  def instance(cls, *args, **kargs):
+    cls.__instance = cls(*args, **kargs)
+    cls.instance = cls.__getInstance
+    return cls.__instance
+
+class MyClass(BaseClass, SingletonInstane):
+  pass
+
+c = MyClass.instance()
+
+3) 코드2
+ Method 2: A decorator
+ 빠르지만 클래스 자체를 호출할경우 함수가 리턴되기 때문에 클래스의 StaticMethod에 접근할수가 없다.
+ def singleton(class_):
+  instances = {}
+  def getinstance(*args, **kwargs):
+    if class_ not in instances:
+        instances[class_] = class_(*args, **kwargs)
+    return instances[class_]
+  return getinstance
+
+@singleton
+class MyClass(BaseClass):
+  pass
+    
+3) 코드3
+ Method 3: A base class
+ 데코레이터 타입의 싱글톤보다 아주 살짝 느리지만 일반적인 클래스처럼 쓸 수가 있기 때문에 가장 범용적이다.
+ class Singleton(object):
+  _instance = None
+  def __new__(class_, *args, **kwargs):
+    if not isinstance(class_._instance, class_):
+        class_._instance = object.__new__(class_, *args, **kwargs)
+    return class_._instance
+
+class MyClass(Singleton, BaseClass):
+  pass
+ 
+3) 코드4
+ Method 4: A metaclass
+ class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+#Python2
+class MyClass(BaseClass):
+    __metaclass__ = Singleton
+
+#Python3
+class MyClass(BaseClass, metaclass=Singleton):
+    pass
+    
+3) 코드5
+Method 5: decorator returning a class with the same name
+def singleton(class_):
+  class class_w(class_):
+    _instance = None
+    def __new__(class_, *args, **kwargs):
+      if class_w._instance is None:
+          class_w._instance = super(class_w, 
+                                    class_).__new__(class_, 
+                                                    *args, 
+                                                    **kwargs)
+          class_w._instance._sealed = False
+      return class_w._instance
+    def __init__(self, *args, **kwargs):
+      if self._sealed:
+        return
+      super(class_w, self).__init__(*args, **kwargs)
+      self._sealed = True
+  class_w.__name__ = class_.__name__
+  return class_w
+
+@singleton
+class MyClass(BaseClass):
+    pass
