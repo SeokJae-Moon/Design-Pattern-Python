@@ -1,0 +1,208 @@
+* 팩토리 패턴 Factory Pattern
+ 1) 정의
+  - 팩토리 메소드 패턴: 객체를 생성하기 위한 인터페이스를 정의하는데, 어떤 클래스의 인스턴스를 만들지는 서브클래스에서 결정하게 만든다. 
+    즉, 팩토리 메소드 패턴을 이용하면 클래스의 인스턴스를 만드는 일을 서브클래스에게 맡기는 것.
+  - 추상 팩토리 패턴: 인터페이스를 이용하여 서로 연관된, 또는 의존하는 객체를 구상 클래스를 지정하지 않고도 생성.
+  - new를 사용하는 것은 구상 클래스의 인스턴스를 만드는 것이다. 당연히! 인터페이스가 아닌 특정 구현을 사용하게 되어버리는 것.
+
+ 2) 이점
+  - 객체 생성과 클래스 구현을 나눠 상호 의존도를 줄일 수 있음-> 느슨한 결합
+  - 클라이언트가 객체를 생성하는 클래스를 알 필요가 없다. Client는 생성하려는 객체 클래스 구현과 상관없이 사용할 수 있다.
+    (객체를 생성하기 위해 client가 알아야할 정보가 최소화됨)
+  - 코드를 수정하지 않고 팩토리에 새로운 클래스를 추가할 수 있으며 이미 생성된 객체를 팩토리가 재활용할 수 있다.
+ 
+ 3) 용도
+  - 객체가 생성되거나 구성, 표현되는 방식과 무관하게 시스템을 독립적으로 만들고자 할 때
+  - 여러 제품군 중 하나를 선택해서 시스템을 설정해야 하고 한번 구성한 제품을 다른 것으로 대체할 수 있을 때
+  - 객체 구현이 아닌 인터페이스를 노출시키고 싶을 때
+ 
+ 4) 코드1:
+ from abc import ABCMeta, abstractmethod
+
+class Animal(metaclass = ABCMeta):
+    
+    @abstractmethod
+    def do_say(self):
+        pass
+
+class Dog(Animal):
+    
+    def do_say(self):
+        print("Bhow Bhow!!")
+
+class Cat(Animal):
+    
+    def do_say(self):
+        print("Meow Meow!!")
+
+
+## forest factory defined
+class ForestFactory(object):
+
+    def make_sound(self, object_type):
+
+        #(object_type)().do_say()
+        return eval(object_type)().do_say()
+        
+        
+
+## client code
+if __name__ == '__main__':
+
+    ff = ForestFactory()   # 포리스트팩토리 생성
+
+    animal = input("Which animal should make_sound Dog or Cat?")
+    
+    ff.make_sound(animal)
+ 
+ -----------------------------------------------------------------------------
+ 4) 코드2
+ from abc import ABCMeta, abstractmethod
+
+class Section(metaclass=ABCMeta):      # 팩토리 다이어그램의 Product에 해당
+    @abstractmethod
+    def describe(self):
+        pass
+
+class PersonalSection(Section):        # 팩토리 다이어그램의 ConcreteProduct
+    def describe(self):
+        print("Personal Section")
+
+class AlbumSection(Section):           # 팩토리 다이어그램의 ConcreteProduct
+    def describe(self):
+        print("Album Section")
+
+class PatentSection(Section):     # 특허부분 객체  # 팩토리 다이어그램의 ConcreteProduct
+    def describe(self):
+        print("Patent Section")
+
+class PublicationSection(Section):     # 팩토리 다이어그램의 ConcreteProduct
+    def describe(self):
+        print("Publication Section")
+
+
+class Profile(metaclass=ABCMeta):    # 팩토리 다이어그램의 Creator
+    def __init__(self):
+        self.sections = []
+        self.createProfile()
+    
+    @abstractmethod
+    def createProfile(self):        # 팩토리 다이어그램의 추상 +factoryMethod() 
+        pass
+    
+    def getSections(self):
+        return self.sections
+    
+    def addSections(self, section):
+        self.sections.append(section)
+
+
+class linkedin(Profile):       # linkedin(sns한종류) 팩토리 객체  # 팩토리 다이어그램의 ConcreteCreator 
+    def createProfile(self):   # 실제 factory 메소드 호출  # 팩토리 다이어그램의 +factoryMethod() 
+        self.addSections(PersonalSection())
+        self.addSections(PatentSection())
+        self.addSections(PublicationSection())
+        #self.getSections(self)
+
+
+class facebook(Profile):       # facebook 팩토리 객체       # 팩토리 다이어그램의 ConcreteCreator
+    def createProfile(self):   # 실제 factory 메소드 호출   # 팩토리 다이어그램의 +factoryMethod() 
+        self.addSections(PersonalSection())
+        self.addSections(AlbumSection())
+        #self.getSections(self)
+
+class twitter(Profile):
+    def createProfile(self):   # 실제 factory 메소드 호출   # 팩토리 다이어그램의 ConcreteCreator
+        self.addSections(PatentSection())                 # 팩토리 다이어그램의 +factoryMethod() 
+        self.addSections(PublicationSection())
+        #self.getSections(self)
+        
+
+
+if __name__ == '__main__':
+
+    profile_type = input("Which Profile you'd like to create? [LinkedIn or FaceBook]")
+
+    profile = eval(profile_type.lower())()  # profile = fackbook
+
+    print("Creating Profile..", type(profile).__name__)  # 객체 이름 출력 코드(내부 __name__임)
+    print("Profile has sections --", profile.getSections())
+
+    for i in profile.sections:
+        print(i.describe())
+
+ -----------------------------------------------------------------------------
+ 4) 코드3
+ from abc import ABCMeta, abstractmethod
+
+class PizzaFactory(metaclass=ABCMeta):    # AbstractFactory
+    @abstractmethod
+    def createVegPizza(self):             # createProduct()
+        pass
+    
+    @abstractmethod                       # createProduct()
+    def createNonVegPizza(self):
+        pass
+
+class IndianPizzaFactory(PizzaFactory):   # ConcreatFactory1
+
+    def createVegPizza(self):
+        return DeluxVeggiePizza()        
+    def createNonVegPizza(self):
+        return ChickenPizza()
+
+class USPizzaFactory(PizzaFactory):       # ConcreatFactory2
+    
+    def createVegPizza(self):
+        return MexicanVegPizza()
+    def createNonVegPizza(self):
+        return HamPizza()
+
+class VegPizza(metaclass=ABCMeta):       # AbstractProduct1
+    
+    @abstractmethod
+    def prepare(self, VegPizza):
+        pass
+
+class NonVegPizza(metaclass=ABCMeta):    # AbstractProduct2
+    
+    @abstractmethod
+    def serve(self, VegPizza):
+        pass
+
+class DeluxVeggiePizza(VegPizza):        # ConcreateProduct1
+    
+    def prepare(self):
+        print("Prepare ", type(self).__name__)
+
+class ChickenPizza(NonVegPizza):         # ConcreateProduct2
+    
+    def serve(self, VegPizza):
+        print(type(self).__name__, " is served with Chicken on ", type(VegPizza).__name__)
+
+class MexicanVegPizza(VegPizza):         # ConcreateProduct2
+    
+    def prepare(self):
+        print("Prepare ", type(self).__name__)
+
+class HamPizza(NonVegPizza):            # ConcreateProduct2
+    
+    def serve(self, VegPizza):
+        print(type(self).__name__, " is served with Ham on ", type(VegPizza).__name__)
+
+class PizzaStore:   # 이런 객체가 여러개 가능. Client
+    
+    def __init__(self):
+        pass
+    
+    def makePizzas(self):
+        for factory in [IndianPizzaFactory(), USPizzaFactory()]:
+            self.factory = factory
+            self.NonVegPizza = self.factory.createNonVegPizza()
+            self.VegPizza = self.factory.createVegPizza()
+            self.VegPizza.prepare()
+            self.NonVegPizza.serve(self.VegPizza)
+
+
+pizza = PizzaStore()
+pizza.makePizzas()
